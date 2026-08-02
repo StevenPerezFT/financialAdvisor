@@ -1,0 +1,17 @@
+{
+  "name": "financial-advisor-monorepo",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:portal": "npm --workspace apps/portal run dev",
+    "dev:core": "cd services/core && go run ./cmd/core",
+    "docker:up": "docker compose up -d",
+    "docker:down": "docker compose down"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

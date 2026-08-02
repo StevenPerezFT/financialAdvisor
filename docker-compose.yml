@@ -1,0 +1,27 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: financial-advisor-postgres
+    environment:
+      POSTGRES_DB: financial_advisor
+      POSTGRES_USER: financial_advisor
+      POSTGRES_PASSWORD: financial_advisor
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./packages/database/migrations:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U financial_advisor -d financial_advisor"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  adminer:
+    image: adminer:4
+    container_name: financial-advisor-adminer
+    ports:
+      - "8080:8080"
+
+volumes:
+  postgres_data:
