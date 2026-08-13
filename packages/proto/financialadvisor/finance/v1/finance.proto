@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+package financialadvisor.finance.v1;
+
+option go_package = "financialAdvisor/services/core/internal/pb/finance/v1;financev1";
+
+message Movement {
+    string id = 1;
+    string type = 2;
+    double amount = 3;
+    string category = 4;
+    string description = 5;
+}
+
+
+message RegisterMovementsRequest {
+    Movement movement = 1;
+}
+message RegisterMovementsResponse {
+    Movement movement = 1;
+}
+
+
+service FinanceService {
+  rpc RegisterMovements(RegisterMovementsRequest) returns (RegisterMovementsResponse);
+}

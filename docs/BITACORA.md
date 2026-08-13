@@ -12,6 +12,7 @@ This file tracks decisions and progress. Updated at each work session.
 - **No multi-tenancy yet**, but a `User` entity is introduced now, and everything (`incomes`, `debts`, `movimientos`, `limites`) is related through `user_id`. This way, adding a `company_id` later is an additive migration, not a rewrite of the model.
 - **Incomes and debts are collections of their own entities**, not accumulated `float64` fields. The business needs a breakdown per income source and per creditor (to compute payment capacity, prioritize debts, and report each income separately for tax purposes).
 - The existing layered architecture in `services/core` (`domain` → `usecase` → `delivery` → `infra`) is kept as-is; it's being completed, not changed.
+- **API transport is gRPC**, following the scaffold's existing `delivery/rpc` folders and `finance.proto` (empty until now). Contracts are defined with [buf](https://buf.build) (already installed locally), not raw `protoc`, and generated Go code lands in `services/core/internal/pb` — kept inside the single existing Go module rather than as a separate module/workspace, since there's only one Go service today (YAGNI on cross-module wiring until a second service actually needs the generated code).
 - **Schema migrations are versioned with [goose](https://github.com/pressly/goose)**, adopted before any real environment/data exists specifically so the product can grow into deployments with real data (including, eventually, per-company environments) without a painful cutover later. Postgres no longer auto-applies SQL on container init (`docker-entrypoint-initdb.d` mount removed from `docker-compose.yml`); the migrations folder is the single source of truth, applied via `make migrate-up` / `migrate-down` / `migrate-status`. Files follow goose's `NNNNN_description.sql` naming with `-- +goose Up` / `-- +goose Down` sections. Requires the `goose` CLI (`go install github.com/pressly/goose/v3/cmd/goose@latest`).
 
 ## Data model (Phase 1)
@@ -61,6 +62,22 @@ Status as of 2026-08-06:
 5. [x] Unit tests (`calculator_test.go`, plus a new one for `usecase`)
 6. [x] Migration (goose): `users`, `incomes`, `debts` tables, plus `user_id` added to `movements` and `limits`
 
+## Phase 1 — Wiring (gRPC + Postgres)
+
+Goal: turn the domain/tests/schema built so far into an app that actually runs against real Postgres, end to end. `main.go` currently just prints a line; nothing persists or serves requests yet.
+
+Status as of 2026-08-06:
+
+1. [x] Postgres connection: driver dependency + a pool opened from `DATABASE_URL`, usable from `main.go`
+2. [x] gRPC toolchain: install `protoc-gen-go`/`protoc-gen-go-grpc`, set up `buf.yaml`/`buf.gen.yaml` in `packages/proto`, generate into `services/core/internal/pb`
+3. [x] Proto contracts: `advisor.proto` (RegisterIncomes, RegisterDebts, CalculateTax) and `finance.proto` (RegisterMovements) — done. `RegisterExpense` (advisor) has no proto contract yet, not tracked as part of this task's scope; add later if needed
+4. [ ] `pgrepo`: Postgres-backed persistence for the aggregates needed by the above (`users`, `incomes`, `debts`, `limits`, `movements`)
+5. [ ] `delivery/rpc` handlers: implement the generated gRPC service interfaces, wiring usecase + repo
+6. [ ] `main.go`: load env, open the DB pool, build the repo → usecase → handler graph, start the gRPC server, graceful shutdown
+7. [ ] End-to-end smoke test against real Postgres (e.g. `grpcurl`)
+
+Order matters: 1 and 2 are independent and foundational; 3 needs 2; 4 needs 1; 5 needs 3 and 4; 6 needs 5; 7 needs 6.
+
 ## Change history
 
 - **2026-08-06**: Created the log. Defined the architecture decision: B2C first, base prepared for B2B (`user_id` from day one, no multi-tenancy yet).
@@ -76,3 +93,7 @@ Status as of 2026-08-06:
 - **2026-08-06**: Unit tests written — `domain/calculator_test.go` covers `TotalIncome`, `TotalDebt`, `TotalDebtService`, `PaymentCapacity`; new `usecase/advisor_usecase_test.go` covers `CalculateTax` (all regimes + unknown/no-income), `RegisterIncome`, `RegisterDebt`, and `RegisterExpense` (limit notification, per-category isolation, accumulation). All pass (`go test ./...`).
 - **2026-08-06**: Adopted goose for schema migrations (see architecture decisions). Converted the existing schema (`movements`, `limits`) into `00001_init.sql` with proper `Up`/`Down` sections; removed the `docker-entrypoint-initdb.d` auto-run from `docker-compose.yml`; added `migrate-up`/`migrate-down`/`migrate-status` targets to the `Makefile` (they read `DATABASE_URL` from `.env`, gitignored, copied from `.env.example`). Verified locally: `up` → `status` → `down` → `up` all behave correctly against a real Postgres container. The `users`/`incomes`/`debts` migration itself (task 6) is still pending, now as `00002_*.sql`.
 - **2026-08-06**: Task 6 completed — `00002_add_users_debts.sql` creates `users`, `incomes`, `debts`, and rebuilds `movements`/`limits` with `user_id` + `UUID` primary keys (see "Data model" section for the UUID v7 decision). Since `movements`/`limits` held no data, they were dropped and recreated rather than altered in place — the `Down` migration restores their exact original `SERIAL`-based shape from `00001_init.sql`. Verified locally: `up` → inspected all 5 tables' final structure → `down` (confirmed `movements`/`limits` revert correctly) → `up` again. Phase 1 (B2C foundations) is now complete.
+- **2026-08-06**: Wiring task 1 done — `internal/db/connection.go` (`Dbc`) opens a `pgxpool.Pool` from `DATABASE_URL` and returns it (error handling left to the caller, no `os.Exit` inside the package, so it's reusable/testable). Verified with a throwaway smoke test against the real Postgres container (connect + ping succeeded), removed after confirming.
+- **2026-08-06**: Wiring task 2 done — installed `protoc-gen-go`/`protoc-gen-go-grpc`; added `packages/proto/buf.yaml` (module) and `buf.gen.yaml` (generates into `services/core/internal/pb`, `paths=source_relative`). Gave `finance.proto` a minimal valid placeholder (`syntax`/`package`/`go_package`) just to prove the pipeline — no messages/services yet, that's task 3. Added `google.golang.org/protobuf` and `google.golang.org/grpc` as Go module deps (needed to compile the generated code, not just to generate it). Verified: `buf lint`, `buf generate`, and `go build ./...` all pass.
+- **2026-08-06**: Renamed the proto package from `aprexa` to `financialadvisor` — `aprexa` turned out to be a leftover codename from the original (pre-session) scaffold commit, unrelated to the product name. Moved `packages/proto/aprexa/` → `packages/proto/financialadvisor/`, updated `package financialadvisor.finance.v1;` in `finance.proto`, regenerated (old output at `internal/pb/aprexa/` removed, new one at `internal/pb/financialadvisor/finance/v1/`). Verified: `buf lint`, `buf generate`, `go build`/`vet`/`test` all pass.
+- **2026-08-06**: `advisor.proto` completed — `CalculateTax`, `RegisterIncomes` (`Income` message mirrors `domain.Income`), `RegisterDebts` (`Debt` message mirrors `domain.Debt`). Added `finance/usecase/finance_usecase.go` (`MovementUseCase.RegisterMovement`, first code in that module's `usecase` layer) and `finance/domain/movement.go` (`Movement` struct mirroring the `movements` table). `finance.proto` written from that usecase's real signature: `RegisterMovements` returns the registered `Movement` (with its generated id) rather than an invented total, since nothing in the usecase computes one and the caller needs the id back to reference the record later. Verified: `buf lint`, `buf generate`, `go build`/`vet`/`test` all pass. Task 3 complete except `RegisterExpense`, left out of scope for now.
