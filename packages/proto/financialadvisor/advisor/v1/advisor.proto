@@ -1,0 +1,62 @@
+syntax = "proto3";
+
+package financialadvisor.advisor.v1;
+
+option go_package = "financialAdvisor/services/core/internal/pb/advisor/v1;advisorv1";
+
+message CalculateTaxRequest {
+  string advisor_id = 1;
+}
+
+message CalculateTaxResponse {
+  double tax = 1;
+}
+
+message Income {
+  string id = 1;
+  double amount = 2;
+  string type = 3;
+  string date = 4;
+}
+message Debt {
+  string id = 1;
+  string creditor = 2;
+  double balance = 3;
+  double installment = 4;
+  string due_date = 5;
+}
+
+message RegisterIncomesRequest {
+  string advisor_id = 1;
+  repeated Income incomes = 2;
+}
+
+message RegisterIncomesResponse {
+  double total_income = 1;
+}
+
+message RegisterDebtsRequest {
+  string advisor_id = 1;
+  repeated Debt debts = 2;
+}
+
+message RegisterDebtsResponse {
+  double total_debt = 1;
+}
+
+
+message RegisterExpenseRequest {
+  string advisor_id = 1;
+  double amount = 2;
+  string category = 3;
+}
+
+message RegisterExpenseResponse {
+  double result_expense = 1;
+}
+
+service AdvisorService {
+  rpc CalculateTax(CalculateTaxRequest) returns (CalculateTaxResponse);
+  rpc RegisterIncomes(RegisterIncomesRequest) returns (RegisterIncomesResponse);
+  rpc RegisterDebts(RegisterDebtsRequest) returns (RegisterDebtsResponse);
+}
