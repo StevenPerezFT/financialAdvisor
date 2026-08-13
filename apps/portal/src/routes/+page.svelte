@@ -1,8 +1,8 @@
 <script>
   const modules = [
-    { title: 'Finanzas', href: '/finanzas' },
-    { title: 'Movimientos', href: '/finanzas/movimientos' },
-    { title: 'Límites', href: '/finanzas/limites' }
+    { title: 'Finance', href: '/finance' },
+    { title: 'Movements', href: '/finance/movements' },
+    { title: 'Limits', href: '/finance/limits' }
   ];
 </script>
 
@@ -12,7 +12,7 @@
 
 <main style="padding: 2rem; font-family: sans-serif;">
   <h1>Financial Advisor</h1>
-  <p>Panel inicial para controlar finanzas y asesor fiscal.</p>
+  <p>Starting panel to manage finances and tax advisory.</p>
 
   <ul>
     {#each modules as module}
