@@ -24,11 +24,11 @@ func (u *AdvisorUseCase) CalculateTax(advisor *domain.Advisor) float64 {
 	total := advisor.TotalIncome()
 	switch advisor.TaxRegime {
 	case taxes.SmallContributor:
-		return total * 0.05
+		return total * taxes.SmallContributorValue
 	case taxes.OptionalSimplified:
-		return total * 0.07
+		return total * taxes.OptionalSimplifiedValue
 	case taxes.ProfitsTax:
-		return total * 0.25
+		return total * taxes.ProfitsTaxValue
 	default:
 		return 0
 	}

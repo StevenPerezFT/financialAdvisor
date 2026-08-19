@@ -32,7 +32,7 @@ message RegisterIncomesRequest {
 }
 
 message RegisterIncomesResponse {
-  double total_income = 1;
+  repeated Income incomes = 1;
 }
 
 message RegisterDebtsRequest {
@@ -41,7 +41,7 @@ message RegisterDebtsRequest {
 }
 
 message RegisterDebtsResponse {
-  double total_debt = 1;
+  repeated Debt debts = 1;
 }
 
 

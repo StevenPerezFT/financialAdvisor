@@ -307,7 +307,7 @@ func (x *RegisterIncomesRequest) GetIncomes() []*Income {
 
 type RegisterIncomesResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	TotalIncome   float64                `protobuf:"fixed64,1,opt,name=total_income,json=totalIncome,proto3" json:"total_income,omitempty"`
+	Incomes       []*Income              `protobuf:"bytes,1,rep,name=incomes,proto3" json:"incomes,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -342,11 +342,11 @@ func (*RegisterIncomesResponse) Descriptor() ([]byte, []int) {
 	return file_financialadvisor_advisor_v1_advisor_proto_rawDescGZIP(), []int{5}
 }
 
-func (x *RegisterIncomesResponse) GetTotalIncome() float64 {
+func (x *RegisterIncomesResponse) GetIncomes() []*Income {
 	if x != nil {
-		return x.TotalIncome
+		return x.Incomes
 	}
-	return 0
+	return nil
 }
 
 type RegisterDebtsRequest struct {
@@ -403,7 +403,7 @@ func (x *RegisterDebtsRequest) GetDebts() []*Debt {
 
 type RegisterDebtsResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	TotalDebt     float64                `protobuf:"fixed64,1,opt,name=total_debt,json=totalDebt,proto3" json:"total_debt,omitempty"`
+	Debts         []*Debt                `protobuf:"bytes,1,rep,name=debts,proto3" json:"debts,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -438,11 +438,11 @@ func (*RegisterDebtsResponse) Descriptor() ([]byte, []int) {
 	return file_financialadvisor_advisor_v1_advisor_proto_rawDescGZIP(), []int{7}
 }
 
-func (x *RegisterDebtsResponse) GetTotalDebt() float64 {
+func (x *RegisterDebtsResponse) GetDebts() []*Debt {
 	if x != nil {
-		return x.TotalDebt
+		return x.Debts
 	}
-	return 0
+	return nil
 }
 
 type RegisterExpenseRequest struct {
@@ -573,16 +573,15 @@ const file_financialadvisor_advisor_v1_advisor_proto_rawDesc = "" +
 	"\x16RegisterIncomesRequest\x12\x1d\n" +
 	"\n" +
 	"advisor_id\x18\x01 \x01(\tR\tadvisorId\x12=\n" +
-	"\aincomes\x18\x02 \x03(\v2#.financialadvisor.advisor.v1.IncomeR\aincomes\"<\n" +
-	"\x17RegisterIncomesResponse\x12!\n" +
-	"\ftotal_income\x18\x01 \x01(\x01R\vtotalIncome\"n\n" +
+	"\aincomes\x18\x02 \x03(\v2#.financialadvisor.advisor.v1.IncomeR\aincomes\"X\n" +
+	"\x17RegisterIncomesResponse\x12=\n" +
+	"\aincomes\x18\x01 \x03(\v2#.financialadvisor.advisor.v1.IncomeR\aincomes\"n\n" +
 	"\x14RegisterDebtsRequest\x12\x1d\n" +
 	"\n" +
 	"advisor_id\x18\x01 \x01(\tR\tadvisorId\x127\n" +
-	"\x05debts\x18\x02 \x03(\v2!.financialadvisor.advisor.v1.DebtR\x05debts\"6\n" +
-	"\x15RegisterDebtsResponse\x12\x1d\n" +
-	"\n" +
-	"total_debt\x18\x01 \x01(\x01R\ttotalDebt\"k\n" +
+	"\x05debts\x18\x02 \x03(\v2!.financialadvisor.advisor.v1.DebtR\x05debts\"P\n" +
+	"\x15RegisterDebtsResponse\x127\n" +
+	"\x05debts\x18\x01 \x03(\v2!.financialadvisor.advisor.v1.DebtR\x05debts\"k\n" +
 	"\x16RegisterExpenseRequest\x12\x1d\n" +
 	"\n" +
 	"advisor_id\x18\x01 \x01(\tR\tadvisorId\x12\x16\n" +
@@ -622,18 +621,20 @@ var file_financialadvisor_advisor_v1_advisor_proto_goTypes = []any{
 }
 var file_financialadvisor_advisor_v1_advisor_proto_depIdxs = []int32{
 	2, // 0: financialadvisor.advisor.v1.RegisterIncomesRequest.incomes:type_name -> financialadvisor.advisor.v1.Income
-	3, // 1: financialadvisor.advisor.v1.RegisterDebtsRequest.debts:type_name -> financialadvisor.advisor.v1.Debt
-	0, // 2: financialadvisor.advisor.v1.AdvisorService.CalculateTax:input_type -> financialadvisor.advisor.v1.CalculateTaxRequest
-	4, // 3: financialadvisor.advisor.v1.AdvisorService.RegisterIncomes:input_type -> financialadvisor.advisor.v1.RegisterIncomesRequest
-	6, // 4: financialadvisor.advisor.v1.AdvisorService.RegisterDebts:input_type -> financialadvisor.advisor.v1.RegisterDebtsRequest
-	1, // 5: financialadvisor.advisor.v1.AdvisorService.CalculateTax:output_type -> financialadvisor.advisor.v1.CalculateTaxResponse
-	5, // 6: financialadvisor.advisor.v1.AdvisorService.RegisterIncomes:output_type -> financialadvisor.advisor.v1.RegisterIncomesResponse
-	7, // 7: financialadvisor.advisor.v1.AdvisorService.RegisterDebts:output_type -> financialadvisor.advisor.v1.RegisterDebtsResponse
-	5, // [5:8] is the sub-list for method output_type
-	2, // [2:5] is the sub-list for method input_type
-	2, // [2:2] is the sub-list for extension type_name
-	2, // [2:2] is the sub-list for extension extendee
-	0, // [0:2] is the sub-list for field type_name
+	2, // 1: financialadvisor.advisor.v1.RegisterIncomesResponse.incomes:type_name -> financialadvisor.advisor.v1.Income
+	3, // 2: financialadvisor.advisor.v1.RegisterDebtsRequest.debts:type_name -> financialadvisor.advisor.v1.Debt
+	3, // 3: financialadvisor.advisor.v1.RegisterDebtsResponse.debts:type_name -> financialadvisor.advisor.v1.Debt
+	0, // 4: financialadvisor.advisor.v1.AdvisorService.CalculateTax:input_type -> financialadvisor.advisor.v1.CalculateTaxRequest
+	4, // 5: financialadvisor.advisor.v1.AdvisorService.RegisterIncomes:input_type -> financialadvisor.advisor.v1.RegisterIncomesRequest
+	6, // 6: financialadvisor.advisor.v1.AdvisorService.RegisterDebts:input_type -> financialadvisor.advisor.v1.RegisterDebtsRequest
+	1, // 7: financialadvisor.advisor.v1.AdvisorService.CalculateTax:output_type -> financialadvisor.advisor.v1.CalculateTaxResponse
+	5, // 8: financialadvisor.advisor.v1.AdvisorService.RegisterIncomes:output_type -> financialadvisor.advisor.v1.RegisterIncomesResponse
+	7, // 9: financialadvisor.advisor.v1.AdvisorService.RegisterDebts:output_type -> financialadvisor.advisor.v1.RegisterDebtsResponse
+	7, // [7:10] is the sub-list for method output_type
+	4, // [4:7] is the sub-list for method input_type
+	4, // [4:4] is the sub-list for extension type_name
+	4, // [4:4] is the sub-list for extension extendee
+	0, // [0:4] is the sub-list for field type_name
 }
 
 func init() { file_financialadvisor_advisor_v1_advisor_proto_init() }

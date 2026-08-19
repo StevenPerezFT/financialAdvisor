@@ -19,14 +19,14 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	FinanceService_RegisterMovements_FullMethodName = "/financialadvisor.finance.v1.FinanceService/RegisterMovements"
+	FinanceService_RegisterMovement_FullMethodName = "/financialadvisor.finance.v1.FinanceService/RegisterMovement"
 )
 
 // FinanceServiceClient is the client API for FinanceService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type FinanceServiceClient interface {
-	RegisterMovements(ctx context.Context, in *RegisterMovementsRequest, opts ...grpc.CallOption) (*RegisterMovementsResponse, error)
+	RegisterMovement(ctx context.Context, in *RegisterMovementRequest, opts ...grpc.CallOption) (*RegisterMovementResponse, error)
 }
 
 type financeServiceClient struct {
@@ -37,10 +37,10 @@ func NewFinanceServiceClient(cc grpc.ClientConnInterface) FinanceServiceClient {
 	return &financeServiceClient{cc}
 }
 
-func (c *financeServiceClient) RegisterMovements(ctx context.Context, in *RegisterMovementsRequest, opts ...grpc.CallOption) (*RegisterMovementsResponse, error) {
+func (c *financeServiceClient) RegisterMovement(ctx context.Context, in *RegisterMovementRequest, opts ...grpc.CallOption) (*RegisterMovementResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(RegisterMovementsResponse)
-	err := c.cc.Invoke(ctx, FinanceService_RegisterMovements_FullMethodName, in, out, cOpts...)
+	out := new(RegisterMovementResponse)
+	err := c.cc.Invoke(ctx, FinanceService_RegisterMovement_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -51,7 +51,7 @@ func (c *financeServiceClient) RegisterMovements(ctx context.Context, in *Regist
 // All implementations must embed UnimplementedFinanceServiceServer
 // for forward compatibility.
 type FinanceServiceServer interface {
-	RegisterMovements(context.Context, *RegisterMovementsRequest) (*RegisterMovementsResponse, error)
+	RegisterMovement(context.Context, *RegisterMovementRequest) (*RegisterMovementResponse, error)
 	mustEmbedUnimplementedFinanceServiceServer()
 }
 
@@ -62,8 +62,8 @@ type FinanceServiceServer interface {
 // pointer dereference when methods are called.
 type UnimplementedFinanceServiceServer struct{}
 
-func (UnimplementedFinanceServiceServer) RegisterMovements(context.Context, *RegisterMovementsRequest) (*RegisterMovementsResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method RegisterMovements not implemented")
+func (UnimplementedFinanceServiceServer) RegisterMovement(context.Context, *RegisterMovementRequest) (*RegisterMovementResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method RegisterMovement not implemented")
 }
 func (UnimplementedFinanceServiceServer) mustEmbedUnimplementedFinanceServiceServer() {}
 func (UnimplementedFinanceServiceServer) testEmbeddedByValue()                        {}
@@ -86,20 +86,20 @@ func RegisterFinanceServiceServer(s grpc.ServiceRegistrar, srv FinanceServiceSer
 	s.RegisterService(&FinanceService_ServiceDesc, srv)
 }
 
-func _FinanceService_RegisterMovements_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(RegisterMovementsRequest)
+func _FinanceService_RegisterMovement_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RegisterMovementRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(FinanceServiceServer).RegisterMovements(ctx, in)
+		return srv.(FinanceServiceServer).RegisterMovement(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: FinanceService_RegisterMovements_FullMethodName,
+		FullMethod: FinanceService_RegisterMovement_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(FinanceServiceServer).RegisterMovements(ctx, req.(*RegisterMovementsRequest))
+		return srv.(FinanceServiceServer).RegisterMovement(ctx, req.(*RegisterMovementRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -112,8 +112,8 @@ var FinanceService_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*FinanceServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "RegisterMovements",
-			Handler:    _FinanceService_RegisterMovements_Handler,
+			MethodName: "RegisterMovement",
+			Handler:    _FinanceService_RegisterMovement_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

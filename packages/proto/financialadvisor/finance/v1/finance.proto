@@ -13,14 +13,15 @@ message Movement {
 }
 
 
-message RegisterMovementsRequest {
-    Movement movement = 1;
+message RegisterMovementRequest {
+    string user_id = 1;
+    Movement movement = 2;
 }
-message RegisterMovementsResponse {
+message RegisterMovementResponse {
     Movement movement = 1;
 }
 
 
 service FinanceService {
-  rpc RegisterMovements(RegisterMovementsRequest) returns (RegisterMovementsResponse);
+  rpc RegisterMovement(RegisterMovementRequest) returns (RegisterMovementResponse);
 }
