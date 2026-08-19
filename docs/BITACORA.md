@@ -6,6 +6,7 @@ This file tracks decisions and progress. Updated at each work session.
 
 - **Phase 1 (current) — B2C**: help individuals with multiple income sources and multiple debts understand their financial situation and tax obligations.
 - **Phase 2 (future) — B2B**: package the above as a tool for financial advisory companies (multi-client, payroll/employees). Not implemented yet, but Phase 1 decisions must leave room for it.
+- **Product boundary: no connection to clients' real money, ever (not just "not yet").** The product stays a planning/advisory layer over data the user self-reports (incomes, debts, movements) — it does not connect to bank accounts, move funds, or aggregate real transactions automatically. This is deliberate, not a scope cut: crossing into real money movement drags in money-transmitter licensing, PCI-grade security certification, and legal liability for mishandled funds — a different, much heavier business than "asesor financiero." Revisit only if the product's identity itself changes.
 
 ## Architecture decisions
 
@@ -75,10 +76,64 @@ Status as of 2026-08-06:
 3. [x] Proto contracts: `advisor.proto` (RegisterIncomes, RegisterDebts, CalculateTax) and `finance.proto` (RegisterMovements) — done. `RegisterExpense` (advisor) has no proto contract yet, not tracked as part of this task's scope; add later if needed
 4. [x] `pgrepo`: Postgres-backed persistence for the aggregates needed by the above — `users`, `incomes`, `debts`, `limits`, `movements`
 5. [x] `delivery/rpc` handlers: implement the generated gRPC service interfaces, wiring usecase + repo — `CalculateTax`, `RegisterIncomes`, `RegisterDebts`, `RegisterMovement`
-6. [ ] `main.go`: load env, open the DB pool, build the repo → usecase → handler graph, start the gRPC server, graceful shutdown
-7. [ ] End-to-end smoke test against real Postgres (e.g. `grpcurl`)
+6. [x] `main.go`: load env, open the DB pool, build the repo → usecase → handler graph, start the gRPC server
+7. [x] End-to-end smoke test against real Postgres (`grpcurl`)
 
 Order matters: 1 and 2 are independent and foundational; 3 needs 2; 4 needs 1; 5 needs 3 and 4; 6 needs 5; 7 needs 6.
+
+## Roadmap (planned, not started)
+
+### Phase 2 — Security & completeness
+
+Not launchable yet even ignoring the frontend — the blocker is auth: every RPC trusts a client-supplied `user_id`/`advisor_id` with no verification of who's actually calling. Priority order:
+
+1. **Auth — passwordless, email-based (no passwords, ever):**
+   - User submits their email → server generates a verification code, emails it (SMTP config already scaffolded in `.env.example`: `SMTP_HOST`/`SMTP_PORT`/`SMTP_USERNAME`/`SMTP_PASSWORD`, unused so far)
+   - User submits email + code → server validates it, issues **two tokens**: a short-lived **access token** (used on every request) and a longer-lived **refresh token** (used only to mint new access tokens)
+   - Handlers stop trusting a request-supplied user id; it comes from the validated access token instead
+2. **Fill out the CRUD surface**: list/update/delete for debts, limits, movements — today there's only `Create`. Add a "get advisor summary" endpoint (incomes + debts + payment capacity + tax in one call) instead of making the frontend stitch together multiple RPCs.
+3. **Wire `RegisterExpense`/`Limit` to a handler** — currently has no proto contract or persistence; limit-reached notifications are computed in memory and thrown away.
+4. **Real tax logic** — `CalculateTax` is a flat-rate placeholder per regime (5%/7%/25% on gross income), no deductions/brackets/filing periods. This is the core value proposition ("asesor fiscal") and is more a product/domain-expertise problem than an engineering one — needs real accounting rules defined before any user relies on it.
+5. **Integration tests** for the repo/handler layer — only throwaway smoke tests were used this session (written, verified, deleted each time). No regression coverage exists for persistence or wiring.
+6. **Production hygiene**: input validation, mapping errors to proper gRPC status codes (a duplicate email currently surfaces a raw Postgres error), graceful shutdown, structured logging. Also fix the missing `ON DELETE CASCADE` from `incomes`/`debts`/`movements`/`limits` to `users` (deleting a user with existing records currently fails instead of cascading).
+
+### Phase 3 — Product depth (B2C)
+
+Makes the product actually useful day-to-day, not just a data store. Priority order, most aligned with the original pitch first:
+
+1. **Debt payoff strategy** — avalanche vs. snowball ordering, payoff timeline projection, "what if I pay $X extra/month" simulation. Today debts are only stored, never analyzed — this is the direct answer to "ayuda a personas con múltiples deudas."
+2. **Fiscal report export** (PDF/CSV) — a real document per fiscal period (income breakdown, deductions, tax owed) the user can act on or hand to an accountant. `CalculateTax` returning a number isn't "helping declare taxes" by itself.
+3. **Real notification delivery** — reuse the existing (empty) `notify/whatsapp.go` stub: alert on an upcoming debt due date or an exceeded spending limit, instead of computing and discarding it in memory.
+4. **Recurring incomes/expenses** — most people have a fixed monthly salary and recurring debt installments; forcing manual entry every month is friction that kills adoption.
+5. **CSV movement import** — user-provided file, still self-reported data (no bank connection). Manual one-by-one entry is the biggest adoption barrier for this category of product.
+
+### Phase 4 — B2B foundations (multi-tenant)
+
+Where the `user_id`-first data model (an intentional decision since day one) actually gets exercised.
+
+- `Company` entity; an "advisor" role that manages multiple client `User`s within a company
+- Role-based permissions (company admin vs. advisor vs. end client)
+- Aggregate view for the advisor: a portfolio of all their clients, not just one at a time
+
+### Phase 5 — Payroll module (employees with salaries)
+
+Part of the original pitch, deliberately deferred until now. A natural extension of the `finance` module, but on the employer side rather than the personal side.
+
+- `Employee` entity tied to a `Company`, salary, pay frequency
+- Payroll runs, payslip generation, statutory withholdings — reuses the real tax logic work from Phase 3
+
+### Phase 6 — Scale and reach
+
+No real-money connections here either — stays within the product boundary above.
+
+- Marketplace/discovery: connect individuals with financial advisory companies through the platform (ties directly to the original second goal — "promocionarlo como herramienta para empresas")
+- Additional client surfaces (mobile app)
+- One-way export to existing accounting software (push the user's already self-reported records out — not a live connection to their accounts)
+
+### Phase 7 — Monetization
+
+- Subscription billing (B2C premium tier, B2B per-advisor/per-client pricing)
+- White-labeling for advisory companies using the platform under their own brand
 
 ## Change history
 
@@ -106,3 +161,6 @@ Order matters: 1 and 2 are independent and foundational; 3 needs 2; 4 needs 1; 5
 - **2026-08-06**: Implemented `AdvisorHandler.RegisterIncomes`. The user got stuck twice on the same broken draft (`req.Incomes`, a `[]*advisorv1.Income`, passed directly into `IncomeRepo.Create`, which takes one `domain.Income`), so I wrote it directly: loop over `req.Incomes`, map each proto `Income` to `domain.Income` (field names happen to match 1:1), `Create` one at a time, then re-read with `ListByUserID` to compute `TotalIncome()` for the response (needs the full post-insert set, not just what was just added). Verified against real Postgres: registered two incomes (1000 + 250.50), got `total_income = 1250.50` back.
 - **2026-08-06**: Reworked the `Register*` response contract after the user correctly questioned why a "create" operation needed to read anything back at all. `RegisterIncomesResponse`/`RegisterDebtsResponse` no longer return a computed total (`total_income`/`total_debt`) — they now return the created `Income`/`Debt` records themselves (with generated `id`), matching the pattern `finance.proto`'s `RegisterMovementsResponse` already used. This removes the `ListByUserID` call from both handlers entirely — a `Register*` handler now only loops, maps proto→domain, and calls `Create`; no read logic left inside a write operation. (Computing "total income across everything" stays `CalculateTax`'s job, which already reads by design.) Also fixed `RegisterDebts`, which was left mid-edit (missing `Create` call, no `return`, and the constructor didn't wire `debtsRepo` at all — would've been a nil-pointer panic). Verified end to end against real Postgres: registered one income and one debt, both came back with generated ids.
 - **2026-08-06**: `finance.proto`'s RPC renamed `RegisterMovements` → `RegisterMovement` (singular) after the user asked why the request wasn't a list — it's singular by design, mirroring `MovementUseCase.RegisterMovement` (registers one at a time, same as `advisor.proto`'s `RegisterIncomes`/`RegisterDebts` do per call, just not batched). The plural RPC name next to a singular payload was the actual source of the confusion; renaming it to match resolves that. While fixing this, found `RegisterMovementRequest` had no `user_id`/`advisor_id` field at all — unlike every `advisor.proto` request — so the handler had no way to know whose movement it was, and `movements.user_id` is `NOT NULL`. Added `string user_id = 1;` to the request. Rewrote `FinanceHandler`: renamed `Create`→`RegisterMovement` to satisfy the generated interface (name and `(*Response, error)` signature both required), swapped `UnsafeFinanceServiceServer`→`UnimplementedFinanceServiceServer` (the generated comment explicitly says Unsafe isn't recommended), fixed the constructor (had an accidental method receiver). Verified against real Postgres: registered a movement, got it back with a generated id. Task 5 (delivery/rpc handlers) complete.
+- **2026-08-06**: `main.go` written by the user — wires `db.Dbc` → both repo sets → both usecases → both handlers → `grpc.NewServer()` → `net.Listen` on `PORT` → `Serve`. Installed `grpcurl` and ran the real server against real Postgres end to end: `RegisterIncomes` (2000 salary) → `CalculateTax` on the same user returned `100` (correct, 5% Small Contributor) → `RegisterMovement` (an expense) returned the created movement with its id. Also noticed the FK from `incomes`/`movements`/`debts`/`limits` to `users` has no `ON DELETE CASCADE` — deleting a user with existing records currently fails instead of cascading; not fixed, just noted for later. Tasks 6 and 7 complete — the full Wiring phase (gRPC + Postgres) is done.
+- **2026-08-06**: End-of-session launch-readiness review. Verdict: not launchable, even setting the (nonexistent) frontend aside — the hard blocker is the total lack of auth. Agreed on passwordless email-code auth (access + refresh tokens, no passwords) over a traditional password flow, plus a priority list for the rest of the gaps found. See "Roadmap" above.
+- **2026-08-06**: Extended the roadmap through phases 4-7 (B2B multi-tenant, payroll, scale, monetization) for the user's own pitch/projections. Along the way, established a firm product boundary (added to "Product goal"): the platform never connects to clients' real bank accounts or moves money — it stays a planning layer over self-reported data, permanently, not just as a near-term scope cut. Removed the open-banking/live-bank-feed ideas that had leaked into phases 3 and 6 as a result.
