@@ -97,27 +97,28 @@ func (x *Movement) GetDescription() string {
 	return ""
 }
 
-type RegisterMovementsRequest struct {
+type RegisterMovementRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Movement      *Movement              `protobuf:"bytes,1,opt,name=movement,proto3" json:"movement,omitempty"`
+	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	Movement      *Movement              `protobuf:"bytes,2,opt,name=movement,proto3" json:"movement,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *RegisterMovementsRequest) Reset() {
-	*x = RegisterMovementsRequest{}
+func (x *RegisterMovementRequest) Reset() {
+	*x = RegisterMovementRequest{}
 	mi := &file_financialadvisor_finance_v1_finance_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *RegisterMovementsRequest) String() string {
+func (x *RegisterMovementRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*RegisterMovementsRequest) ProtoMessage() {}
+func (*RegisterMovementRequest) ProtoMessage() {}
 
-func (x *RegisterMovementsRequest) ProtoReflect() protoreflect.Message {
+func (x *RegisterMovementRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_financialadvisor_finance_v1_finance_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -129,39 +130,46 @@ func (x *RegisterMovementsRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use RegisterMovementsRequest.ProtoReflect.Descriptor instead.
-func (*RegisterMovementsRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use RegisterMovementRequest.ProtoReflect.Descriptor instead.
+func (*RegisterMovementRequest) Descriptor() ([]byte, []int) {
 	return file_financialadvisor_finance_v1_finance_proto_rawDescGZIP(), []int{1}
 }
 
-func (x *RegisterMovementsRequest) GetMovement() *Movement {
+func (x *RegisterMovementRequest) GetUserId() string {
+	if x != nil {
+		return x.UserId
+	}
+	return ""
+}
+
+func (x *RegisterMovementRequest) GetMovement() *Movement {
 	if x != nil {
 		return x.Movement
 	}
 	return nil
 }
 
-type RegisterMovementsResponse struct {
+type RegisterMovementResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Movement      *Movement              `protobuf:"bytes,1,opt,name=movement,proto3" json:"movement,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *RegisterMovementsResponse) Reset() {
-	*x = RegisterMovementsResponse{}
+func (x *RegisterMovementResponse) Reset() {
+	*x = RegisterMovementResponse{}
 	mi := &file_financialadvisor_finance_v1_finance_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *RegisterMovementsResponse) String() string {
+func (x *RegisterMovementResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*RegisterMovementsResponse) ProtoMessage() {}
+func (*RegisterMovementResponse) ProtoMessage() {}
 
-func (x *RegisterMovementsResponse) ProtoReflect() protoreflect.Message {
+func (x *RegisterMovementResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_financialadvisor_finance_v1_finance_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -173,12 +181,12 @@ func (x *RegisterMovementsResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use RegisterMovementsResponse.ProtoReflect.Descriptor instead.
-func (*RegisterMovementsResponse) Descriptor() ([]byte, []int) {
+// Deprecated: Use RegisterMovementResponse.ProtoReflect.Descriptor instead.
+func (*RegisterMovementResponse) Descriptor() ([]byte, []int) {
 	return file_financialadvisor_finance_v1_finance_proto_rawDescGZIP(), []int{2}
 }
 
-func (x *RegisterMovementsResponse) GetMovement() *Movement {
+func (x *RegisterMovementResponse) GetMovement() *Movement {
 	if x != nil {
 		return x.Movement
 	}
@@ -195,13 +203,14 @@ const file_financialadvisor_finance_v1_finance_proto_rawDesc = "" +
 	"\x04type\x18\x02 \x01(\tR\x04type\x12\x16\n" +
 	"\x06amount\x18\x03 \x01(\x01R\x06amount\x12\x1a\n" +
 	"\bcategory\x18\x04 \x01(\tR\bcategory\x12 \n" +
-	"\vdescription\x18\x05 \x01(\tR\vdescription\"]\n" +
-	"\x18RegisterMovementsRequest\x12A\n" +
-	"\bmovement\x18\x01 \x01(\v2%.financialadvisor.finance.v1.MovementR\bmovement\"^\n" +
-	"\x19RegisterMovementsResponse\x12A\n" +
-	"\bmovement\x18\x01 \x01(\v2%.financialadvisor.finance.v1.MovementR\bmovement2\x95\x01\n" +
-	"\x0eFinanceService\x12\x82\x01\n" +
-	"\x11RegisterMovements\x125.financialadvisor.finance.v1.RegisterMovementsRequest\x1a6.financialadvisor.finance.v1.RegisterMovementsResponseBAZ?financialAdvisor/services/core/internal/pb/finance/v1;financev1b\x06proto3"
+	"\vdescription\x18\x05 \x01(\tR\vdescription\"u\n" +
+	"\x17RegisterMovementRequest\x12\x17\n" +
+	"\auser_id\x18\x01 \x01(\tR\x06userId\x12A\n" +
+	"\bmovement\x18\x02 \x01(\v2%.financialadvisor.finance.v1.MovementR\bmovement\"]\n" +
+	"\x18RegisterMovementResponse\x12A\n" +
+	"\bmovement\x18\x01 \x01(\v2%.financialadvisor.finance.v1.MovementR\bmovement2\x91\x01\n" +
+	"\x0eFinanceService\x12\x7f\n" +
+	"\x10RegisterMovement\x124.financialadvisor.finance.v1.RegisterMovementRequest\x1a5.financialadvisor.finance.v1.RegisterMovementResponseBAZ?financialAdvisor/services/core/internal/pb/finance/v1;financev1b\x06proto3"
 
 var (
 	file_financialadvisor_finance_v1_finance_proto_rawDescOnce sync.Once
@@ -217,15 +226,15 @@ func file_financialadvisor_finance_v1_finance_proto_rawDescGZIP() []byte {
 
 var file_financialadvisor_finance_v1_finance_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
 var file_financialadvisor_finance_v1_finance_proto_goTypes = []any{
-	(*Movement)(nil),                  // 0: financialadvisor.finance.v1.Movement
-	(*RegisterMovementsRequest)(nil),  // 1: financialadvisor.finance.v1.RegisterMovementsRequest
-	(*RegisterMovementsResponse)(nil), // 2: financialadvisor.finance.v1.RegisterMovementsResponse
+	(*Movement)(nil),                 // 0: financialadvisor.finance.v1.Movement
+	(*RegisterMovementRequest)(nil),  // 1: financialadvisor.finance.v1.RegisterMovementRequest
+	(*RegisterMovementResponse)(nil), // 2: financialadvisor.finance.v1.RegisterMovementResponse
 }
 var file_financialadvisor_finance_v1_finance_proto_depIdxs = []int32{
-	0, // 0: financialadvisor.finance.v1.RegisterMovementsRequest.movement:type_name -> financialadvisor.finance.v1.Movement
-	0, // 1: financialadvisor.finance.v1.RegisterMovementsResponse.movement:type_name -> financialadvisor.finance.v1.Movement
-	1, // 2: financialadvisor.finance.v1.FinanceService.RegisterMovements:input_type -> financialadvisor.finance.v1.RegisterMovementsRequest
-	2, // 3: financialadvisor.finance.v1.FinanceService.RegisterMovements:output_type -> financialadvisor.finance.v1.RegisterMovementsResponse
+	0, // 0: financialadvisor.finance.v1.RegisterMovementRequest.movement:type_name -> financialadvisor.finance.v1.Movement
+	0, // 1: financialadvisor.finance.v1.RegisterMovementResponse.movement:type_name -> financialadvisor.finance.v1.Movement
+	1, // 2: financialadvisor.finance.v1.FinanceService.RegisterMovement:input_type -> financialadvisor.finance.v1.RegisterMovementRequest
+	2, // 3: financialadvisor.finance.v1.FinanceService.RegisterMovement:output_type -> financialadvisor.finance.v1.RegisterMovementResponse
 	3, // [3:4] is the sub-list for method output_type
 	2, // [2:3] is the sub-list for method input_type
 	2, // [2:2] is the sub-list for extension type_name

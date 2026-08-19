@@ -33,3 +33,26 @@ func (r *IncomeRepo) Create(ctx context.Context, userID string, income domain.In
 	}
 	return income, nil
 }
+
+func (r *IncomeRepo) ListByUserID(ctx context.Context, userID string) ([]domain.Income, error) {
+	rows, err := r.pool.Query(ctx,
+		`SELECT id, amount, type, date FROM incomes WHERE user_id = $1`,
+		userID,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var incomes []domain.Income
+	for rows.Next() {
+		var income domain.Income
+		var date time.Time
+		if err := rows.Scan(&income.Id, &income.Amount, &income.Type, &date); err != nil {
+			return nil, err
+		}
+		income.Date = date.Format(dateformat.Layout)
+		incomes = append(incomes, income)
+	}
+	return incomes, rows.Err()
+}

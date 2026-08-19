@@ -26,3 +26,15 @@ func (u *UserRepo) Create(ctx context.Context, user domain.User) (domain.User, e
 	}
 	return user, nil
 }
+
+func (u *UserRepo) FindByID(ctx context.Context, id string) (domain.User, error) {
+	var user domain.User
+	err := u.pool.QueryRow(ctx,
+		`SELECT id, email, name, tax_regime FROM users WHERE id = $1`,
+		id,
+	).Scan(&user.Id, &user.Email, &user.Name, &user.TaxRegime)
+	if err != nil {
+		return domain.User{}, err
+	}
+	return user, nil
+}
